@@ -1,0 +1,16 @@
+<Window x:Class="AimRobot.AppSettings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AppSettings" Height="300" Width="300">
+    <Canvas>
+        <Label Canvas.Top="0" Canvas.Left="0" Content="Camera URL"></Label>
+        <TextBox Name="_cameraurl" Margin="0,0,0,236" HorizontalAlignment="Right" Width="166" Canvas.Left="105" Canvas.Top="0">http://10.14.25.11/</TextBox>
+        <Button Name="_save" Margin="0,237,212,0" Click="_save_Click">Save</Button>
+        <Label Canvas.Top="28" Canvas.Left="0" >Luminance</Label>
+        <TextBox Name="_luminance" HorizontalAlignment="Left" Margin="0,39,104,194" Text="220" Width="42" Canvas.Left="105" Canvas.Top="-11" ></TextBox>
+        <Label Canvas.Left="0" Canvas.Top="60" Content="Frame Rate" />
+        <TextBox Canvas.Left="105" Canvas.Top="60" Name="_framerate" Text="10" Width="42" HorizontalAlignment="Right" />
+        <Label Canvas.Left="0" Canvas.Top="92" Content="Horizontal Offset" />
+        <TextBox Name="_horizontaloffset" Canvas.Left="105" Canvas.Top="92" Text="0" Width="42" />
+    </Canvas>
+</Window>
