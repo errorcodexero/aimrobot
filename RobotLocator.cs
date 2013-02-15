@@ -18,13 +18,21 @@ namespace AimRobot {
         public double cameraFOV = 45.0;      // camera field of view
 
         List<Particle> _particles;
-        public Particle target;  // goals
+        public Particle targetmid;  // middle goal
+        public Particle targetleft; // left goal
+        public Particle targetright; // right goal
 
         public int imgwidth, imgheight, center;
         public int horizontaloffset;
         public double targetcenter;
 
         public double distance;
+
+        double midaspectmax = .385; // (10.0in / 31.0in) + 10% for error
+        double midaspectmin = .29; // (10.0in / 31.0in) - 10% for error
+
+        double sideaspectmax = .6; // (29.0in / 62.0in) + 10% for error
+        double sideaspectmin = .386; // (29.0in / 62.0in) - 10% for error
 
         double DegreesToRadians(double angle) {
             return angle * (Math.PI / 180.0);
@@ -50,27 +58,54 @@ namespace AimRobot {
             imgwidth = pi.imgwidth;
 
             center = imgwidth / 2;  // best guess if we can't figure it out for sure.
-            target = null;
+            targetmid = null;
 
             // find the biggest particle that crosses the center.
             foreach (Particle p in pi.Particles) {
-                if ((p.left < center) && (p.right > center) && 
-                    ((target == null) || (p.area > target.area))) {
-                    target = p;
+                double aspectParticle = (p.height / p.width);
+                if ((aspectParticle > midaspectmin) && (aspectParticle < midaspectmax)) 
+                {
+                    targetmid = p;
+                    break;
                 }
             }
-
-            if (target == null) {
-                // find largest particle
-                foreach (Particle p in pi.Particles) {
-                    if ((target == null) || (p.area > target.area)) {
-                        target = p;
+            if (targetmid != null)
+            {
+                foreach (Particle p in pi.Particles)
+                {
+                    double aspectParticle = (p.height / p.width);
+                    if ((aspectParticle > sideaspectmin) && (aspectParticle < sideaspectmax) && (targetmid.right < p.left))
+                    {
+                        targetright = p;
+                        break;
                     }
                 }
+                foreach (Particle p in pi.Particles)
+                {
+                    double aspectParticle = (p.height / p.width);
+                    if ((aspectParticle > sideaspectmin) && (aspectParticle < sideaspectmax) && (targetmid.left > p.right))
+                    {
+                        targetleft = p;
+                        break;
+                    }
+                }
+                //if ((p.left < center) && (p.right > center) && 
+                //    ((target == null) || (p.area > target.area))) {
+                //    target = p;
             }
-
-            if (target != null)
-                targetcenter = target.centerx;
+                if (targetmid == null)
+                {
+                    // find largest particle
+                    foreach (Particle p in pi.Particles)
+                    {
+                        if ((targetmid == null) || (p.area > targetmid.area))
+                        {
+                            targetmid = p;
+                        }
+                    }
+                }
+            if (targetmid != null)
+                targetcenter = targetmid.centerx;
             else
                 targetcenter = 0;
 

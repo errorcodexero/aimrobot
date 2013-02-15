@@ -1,0 +1,5 @@
+C:\Robotics\NetworkTable\NetworkTable\bin\Debug\NetworkTable.dll
+C:\Robotics\NetworkTable\NetworkTable\bin\Debug\NetworkTable.pdb
+C:\Robotics\NetworkTable\NetworkTable\obj\Debug\ResolveAssemblyReference.cache
+C:\Robotics\NetworkTable\NetworkTable\obj\Debug\NetworkTable.dll
+C:\Robotics\NetworkTable\NetworkTable\obj\Debug\NetworkTable.pdb

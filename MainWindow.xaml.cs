@@ -35,6 +35,7 @@ namespace AimRobot {
         NetworkTableConnection _ntconnection;
         NetworkTable _smartdashboard;
         Line _centerveritical;
+        double Aspect;
 
         void WriteFile(byte[] bits, string path) {
             using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None)) {
@@ -130,23 +131,53 @@ namespace AimRobot {
 
             _direction.Text = offset.ToString() + dir;
 
-            if (rl.target != null) {
+            if (rl.targetmid != null) {
                 _smartdashboard.SetDouble("offset", (double)offset);
-                _smartdashboard.SetDouble("width", (double)rl.target.width);
-                _smartdashboard.SetDouble("height", (double)rl.target.height);
+                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
+                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
 
-                _target.Width = rl.target.width;
-                _target.Height = rl.target.height;
-                Canvas.SetTop(_target, rl.target.top);
-                Canvas.SetLeft(_target, rl.target.left);
+                _targetmid.Width = rl.targetmid.width;
+                _targetmid.Height = rl.targetmid.height;
+                Canvas.SetTop(_targetmid, rl.targetmid.top);
+                Canvas.SetLeft(_targetmid, rl.targetmid.left);
+
+                Aspect = (rl.targetmid.height / rl.targetmid.width);
             }
             else {
-                _target.Width = 0;
-                _target.Height = 0;
+                _targetmid.Width = 0;
+                _targetmid.Height = 0;
 
                 _smartdashboard.SetDouble("width", (double)0);
                 _smartdashboard.SetDouble("height", (double)0);
                 _smartdashboard.SetDouble("offset", (double)0);
+            }
+            if (rl.targetleft != null)
+            {
+                _targetleft.Width = rl.targetleft.width;
+                _targetleft.Height = rl.targetleft.height;
+                Canvas.SetTop(_targetleft, rl.targetleft.top);
+                Canvas.SetLeft(_targetleft, rl.targetleft.left);
+
+                Aspect = (rl.targetleft.height / rl.targetleft.width);
+            }
+            else
+            {
+                _targetleft.Width = 0;
+                _targetleft.Height = 0; 
+            }
+            if (rl.targetright != null)
+            {
+                _targetright.Width = rl.targetright.width;
+                _targetright.Height = rl.targetright.height;
+                Canvas.SetTop(_targetright, rl.targetright.top);
+                Canvas.SetLeft(_targetright, rl.targetright.left);
+
+                Aspect = (rl.targetright.height / rl.targetright.width);
+            }
+            else
+            {
+                _targetright.Width = 0;
+                _targetright.Height = 0;
             }
             //if (rl.right != null) {
             //    _rightgoal.Width = rl.right.width;
@@ -237,7 +268,7 @@ namespace AimRobot {
             if (newimg) {
                 _count++;
 
-                _report.Text = string.Format("frame {0} fps {1} {2}", _count, fps, _particlefinder.Particles.Count);
+                _report.Text = string.Format("frame {0} fps {1} {2} Aspect {3}", _count, fps, _particlefinder.Particles.Count, Aspect);
             }
         }
     }

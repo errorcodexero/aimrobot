@@ -1,0 +1,5 @@
+C:\Robotics\code\AimRobot\NetworkTables\bin\Release\NetworkTable.dll
+C:\Robotics\code\AimRobot\NetworkTables\bin\Release\NetworkTable.pdb
+C:\Robotics\code\AimRobot\NetworkTables\obj\Release\ResolveAssemblyReference.cache
+C:\Robotics\code\AimRobot\NetworkTables\obj\Release\NetworkTable.dll
+C:\Robotics\code\AimRobot\NetworkTables\obj\Release\NetworkTable.pdb

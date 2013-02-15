@@ -1,0 +1,15 @@
+C:\Robotics\NetworkTable\NetworkTables\bin\Debug\NetworkTable.dll
+C:\Robotics\NetworkTable\NetworkTables\bin\Debug\NetworkTable.pdb
+C:\Robotics\NetworkTable\NetworkTables\obj\Debug\ResolveAssemblyReference.cache
+C:\Robotics\NetworkTable\NetworkTables\obj\Debug\NetworkTable.dll
+C:\Robotics\NetworkTable\NetworkTables\obj\Debug\NetworkTable.pdb
+C:\Robotics\code\AimRobot\NetworkTables\bin\Debug\NetworkTable.dll
+C:\Robotics\code\AimRobot\NetworkTables\bin\Debug\NetworkTable.pdb
+C:\Robotics\code\AimRobot\NetworkTables\obj\Debug\ResolveAssemblyReference.cache
+C:\Robotics\code\AimRobot\NetworkTables\obj\Debug\NetworkTable.dll
+C:\Robotics\code\AimRobot\NetworkTables\obj\Debug\NetworkTable.pdb
+C:\Users\Xudomus\Desktop\AimRobot\NetworkTables\bin\Debug\NetworkTable.dll
+C:\Users\Xudomus\Desktop\AimRobot\NetworkTables\bin\Debug\NetworkTable.pdb
+C:\Users\Xudomus\Desktop\AimRobot\NetworkTables\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Xudomus\Desktop\AimRobot\NetworkTables\obj\Debug\NetworkTable.dll
+C:\Users\Xudomus\Desktop\AimRobot\NetworkTables\obj\Debug\NetworkTable.pdb
