@@ -297,7 +297,7 @@ namespace AimRobot {
 
                  _report.Text = string.Format("frame {0} fps {1} trim {2} Aspect {3}", _framecount, fps, _trim, Aspect);
 
-                 reportAiming();
+                 // reportAiming();
              }
         }
 
