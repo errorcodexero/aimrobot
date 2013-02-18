@@ -38,11 +38,20 @@ namespace AimRobot {
         Line _centerveritical;
         double Aspect;
         double _trim;
+        bool _aiming = false;
+        int _targetoffset;
+        StreamWriter _log;
 
         void WriteFile(byte[] bits, string path) {
             using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None)) {
                 fs.Write(bits, 0, (int)bits.Length);
             }
+        }
+
+        string timestamp() {
+            DateTime now = DateTime.Now;
+
+            return now.ToString("hh:mm:ss.ff");
         }
 
         public MainWindow() {
@@ -69,11 +78,10 @@ namespace AimRobot {
             _report.TextAlignment = TextAlignment.Left;
             _report.FontFamily = new FontFamily("Courier New");
             _report.FontSize = 16;
-            // Canvas.SetTop(_report, 0);
 
             dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 5);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             dispatcherTimer.Start();
 
             Left = Settings.Default.Left;
@@ -106,27 +114,63 @@ namespace AimRobot {
             // throw new NotImplementedException();
         }
 
+        void reportAiming() 
+        {
+            bool a = _smartdashboard.GetBool("aiming");
+
+            if (_log != null)
+                _log.WriteLine("{0}\tFrame\t{1}\tOffset\t{2}", timestamp(), _framecount, _targetoffset);
+
+            if (a && !_aiming) {
+                // somebody pressed the aim button;
+                _log = File.AppendText("c:/temp/aim.log");
+
+                _aiming = true;
+            }
+            else if (!a && _aiming) {
+                // we're done aiming
+                int cycles = (int) _smartdashboard.GetDouble("aimExCycles");
+                int frames = (int) _smartdashboard.GetDouble("aimFrames");
+                double tm = _smartdashboard.GetDouble("aimTime");
+
+                if (_log != null) {
+                    _log.WriteLine("{0}\tCycles\t{1}\tFrames\t{2}\tTime\t{3:0.00}", timestamp(), cycles, frames, tm);
+                    _log.Flush();
+                    _log.Close();
+                    _log = null;
+                }
+                else
+                    _aiming = false; // something got broken
+
+                // done with aiming.
+            }
+            // else if (a && _aiming) {
+                // we're in the process of aiming
+            //}
+            // else we shouldn't be aiming.
+        }
+
         // drawRobotLines draws the lines, and aims for the selected target
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
-            int offset = rl.horizontaloffset;
 
-            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + offset);
+            _targetoffset = rl.horizontaloffset;
+            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + _targetoffset);
             _centercamera.X2 = _centercamera.X1;
 
             string dir = string.Empty;
-            if (offset > 0)
+            if (_targetoffset > 0)
                 dir = " Left";
-            else if (offset < 0)
+            else if (_targetoffset < 0)
                 dir = " Right";
 
-            _direction.Text = offset.ToString() + dir;
+            _direction.Text = _targetoffset.ToString() + dir;
             _trim = _smartdashboard.GetDouble("trim");
 
-            _smartdashboard.SetDouble("frame", (double)_framecount);
+            _smartdashboard.SetDouble("frameNum", (double)_framecount);
 
             if (rl.targetmid != null) {
-                _smartdashboard.SetDouble("offset", (double)offset);
+                _smartdashboard.SetDouble("offset", (double)_targetoffset);
                 _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
                 _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
 
@@ -252,6 +296,8 @@ namespace AimRobot {
                  _framecount++;
 
                  _report.Text = string.Format("frame {0} fps {1} trim {2} Aspect {3}", _framecount, fps, _trim, Aspect);
+
+                 reportAiming();
              }
         }
 

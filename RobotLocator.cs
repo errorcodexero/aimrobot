@@ -30,13 +30,46 @@ namespace AimRobot {
         double sideaspectmax = .6; // (29.0in / 62.0in) + 10% for error
         double sideaspectmin = .386; // (29.0in / 62.0in) - 10% for error
 
-        ///////////////////////////////////////////////////////////////////////////
-        // 
-        public RobotLocator(ParticleFinder pi) {
-            _particles = pi.Particles;
-            imgheight = pi.imgheight;
-            imgwidth = pi.imgwidth;
+        public static int compareParticleSize(Particle p1,
+                                              Particle p2) {
+            double val = p2.area - p1.area;
 
+            if (val > 0)
+                return 1;
+            else if (val < 0)
+                return -1;
+            else return 0;
+        }
+
+        public static int compareParticleLeft(Particle p1,
+                                              Particle p2) {
+            double val = (p1.left - p2.left);
+
+            if (val > 0)
+                return 1;
+            else if (val < 0)
+                return -1;
+            else return 0;
+        }
+
+        void findTargets() {
+            _particles.Sort(compareParticleSize);
+
+            // only take the top three...  Gack.
+            int count = 3;
+            if (_particles.Count < 3)
+                count = _particles.Count;
+
+            List<Particle> main = new List<Particle>();
+            for (int i = 0; i < count; i++ )
+                main.Add(_particles[i]);
+
+            main.Sort(compareParticleLeft);
+
+            _particles = main;
+        }
+
+        void findByAspectRatio(ParticleFinder pi) {
             // look for mid goal, find the biggest particle with the right aspect ratio
             foreach (Particle p in pi.Particles) {
                 if ((p.aspectratio > midaspectmin) && (p.aspectratio < midaspectmax)) {
@@ -68,6 +101,42 @@ namespace AimRobot {
                         targetmid = p;
                     }
                 }
+            }
+
+        }
+
+        ///////////////////////////////////////////////////////////////////////////
+        // 
+        public RobotLocator(ParticleFinder pi) {
+            _particles = pi.Particles;
+
+            imgheight = pi.imgheight;
+            imgwidth = pi.imgwidth;
+
+            findTargets();
+
+            if (_particles.Count == 3) {
+                targetleft = _particles[0];
+                targetmid = _particles[1];
+                targetright = _particles[2];
+            }
+            else if (_particles.Count == 2) {
+                Particle p1 = _particles[0];
+                Particle p2 = _particles[1];
+
+                int center = imgwidth / 2;
+
+                if (p1.area > p2.area) {
+                   targetleft = p1;
+                   targetmid = p2;
+                }
+                else {
+                    targetmid = p1;
+                    targetright = p2;
+                }
+            }
+            else if (_particles.Count == 1) {
+                targetmid = _particles[0];
             }
 
             if (targetmid != null)
