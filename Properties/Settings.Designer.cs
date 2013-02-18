@@ -37,7 +37,7 @@ namespace AimRobot.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("220")]
+        [global::System.Configuration.DefaultSettingValueAttribute("240")]
         public byte Luminance {
             get {
                 return ((byte)(this["Luminance"]));

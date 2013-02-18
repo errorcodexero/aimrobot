@@ -30,12 +30,13 @@ namespace AimRobot {
         string _tmppath;
 
         DispatcherTimer dispatcherTimer;
-        Camera _camera;
+        CameraMJPG _camera;
         ParticleFinder _particlefinder;
         NetworkTableConnection _ntconnection;
         NetworkTable _smartdashboard;
         Line _centerveritical;
         double Aspect;
+        double _trim;
 
         void WriteFile(byte[] bits, string path) {
             using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None)) {
@@ -85,7 +86,7 @@ namespace AimRobot {
 
         public void Start() {
             _particlefinder = new ParticleFinder(Settings.Default.Luminance, false, 60 * 25);
-            _camera = new Camera(Settings.Default.CameraURL, Settings.Default.FrameRate);
+            _camera = new CameraMJPG(Settings.Default.CameraURL, Settings.Default.FrameRate);
             _camera.Start();
         }
 
@@ -125,11 +126,12 @@ namespace AimRobot {
 
             string dir = string.Empty;
             if (offset > 0)
-                dir = " Right";
-            else if (offset < 0)
                 dir = " Left";
+            else if (offset < 0)
+                dir = " Right";
 
             _direction.Text = offset.ToString() + dir;
+            _trim = _smartdashboard.GetDouble("trim");
 
             if (rl.targetmid != null) {
                 _smartdashboard.SetDouble("offset", (double)offset);
@@ -198,7 +200,10 @@ namespace AimRobot {
             if ((_camera != null) && (_camera.NewImage)) {
                 byte[] img = _camera.Image;
 
+
                 if (img != null) {
+                    WriteFile(img, _tmppath);
+
                     BitmapImage bi = new BitmapImage();
                     using (MemoryStream m = new MemoryStream(img)) {
                         bi.BeginInit();
@@ -207,7 +212,6 @@ namespace AimRobot {
                         bi.EndInit();
                     }
 
-                    WriteFile(img, _tmppath);
                     string pngpath = _particlefinder.ProcessPath(_tmppath);
                     // BitmapImage bi = new BitmapImage(new Uri(pngpath));
 
@@ -247,29 +251,29 @@ namespace AimRobot {
 
         void dispatcherTimer_Tick(object sender, EventArgs e) {
              bool newimg = processCameraImage();
-            // bool newimg = processVideoImage();
 
-            if ((_count % 30) == 0) {
-                DateTime now = DateTime.Now;
-                TimeSpan delta = now - _lastframetime;
-                fps = (int)(30000.0 / delta.TotalMilliseconds);
-                _lastframetime = now;
+             if (newimg) {
+                 if ((_count % 30) == 0) {
+                     DateTime now = DateTime.Now;
+                     TimeSpan delta = now - _lastframetime;
+                     fps = (int)(30000.0 / delta.TotalMilliseconds);
+                     _lastframetime = now;
 
-                if (_ntconnection.Connected) {
-                    _connected.Background = Brushes.Green;
-                    _connected.Text = "connected";
-                }
-                else {
-                    _connected.Background = Brushes.Red;
-                    _connected.Text = "disconnected";
-                }
-            }
+                     if (_ntconnection.Connected) {
+                         _connected.Background = Brushes.Green;
+                         _connected.Text = "connected";
+                     }
+                     else {
+                         _connected.Background = Brushes.Red;
+                         _connected.Text = "disconnected";
+                     }
+                 }
 
-            if (newimg) {
-                _count++;
+                 _count++;
 
-                _report.Text = string.Format("frame {0} fps {1} {2} Aspect {3}", _count, fps, _particlefinder.Particles.Count, Aspect);
-            }
+                 _report.Text = string.Format("frame {0} fps {1} {2} Aspect {3:0.00} trim {4}", 
+                     _count, fps, _particlefinder.Particles.Count, Aspect, _trim);
+             }
         }
     }
 }

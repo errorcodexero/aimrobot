@@ -6,7 +6,7 @@
       <Value Profile="(Default)">http://10.14.25.11/</Value>
     </Setting>
     <Setting Name="Luminance" Type="System.Byte" Scope="User">
-      <Value Profile="(Default)">220</Value>
+      <Value Profile="(Default)">240</Value>
     </Setting>
     <Setting Name="FrameRate" Type="System.UInt32" Scope="User">
       <Value Profile="(Default)">30</Value>
