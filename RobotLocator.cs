@@ -11,10 +11,8 @@ using System.Threading;
 using Vision;
 
 namespace AimRobot {
-    // RobotLocator tries to figure out the location of the Robot on the field
-    // relative to the target goal.
+    // RobotLocator tries to find out the targets goals
     public class RobotLocator {
-        // aspect ratio tolerance, to check for proper 4:3 ratio
         public double cameraFOV = 45.0;      // camera field of view
 
         List<Particle> _particles;
@@ -22,33 +20,15 @@ namespace AimRobot {
         public Particle targetleft; // left goal
         public Particle targetright; // right goal
 
-        public int imgwidth, imgheight, center;
+        public int imgwidth, imgheight;
         public int horizontaloffset;
         public double targetcenter;
-
-        public double distance;
 
         double midaspectmax = .385; // (10.0in / 31.0in) + 10% for error
         double midaspectmin = .29; // (10.0in / 31.0in) - 10% for error
 
         double sideaspectmax = .6; // (29.0in / 62.0in) + 10% for error
         double sideaspectmin = .386; // (29.0in / 62.0in) - 10% for error
-
-        double DegreesToRadians(double angle) {
-            return angle * (Math.PI / 180.0);
-        }
-
-        double RadiansToDegrees(double angle) {
-            return angle * (180.0 / Math.PI);
-        }
-
-        double sind(double degrees) {
-            return Math.Sin(DegreesToRadians(degrees));
-        }
-
-        double cosd(double degrees) {
-            return Math.Cos(DegreesToRadians(degrees));
-        }
 
         ///////////////////////////////////////////////////////////////////////////
         // 
@@ -57,53 +37,39 @@ namespace AimRobot {
             imgheight = pi.imgheight;
             imgwidth = pi.imgwidth;
 
-            center = imgwidth / 2;  // best guess if we can't figure it out for sure.
-            targetmid = null;
-
-            // find the biggest particle that crosses the center.
+            // look for mid goal, find the biggest particle with the right aspect ratio
             foreach (Particle p in pi.Particles) {
-                double aspectParticle = (p.height / p.width);
-                if ((aspectParticle > midaspectmin) && (aspectParticle < midaspectmax)) 
-                {
-                    targetmid = p;
-                    break;
+                if ((p.aspectratio > midaspectmin) && (p.aspectratio < midaspectmax)) {
+                    if ((targetmid == null) || (p.area > targetmid.area))
+                        targetmid = p;
                 }
             }
-            if (targetmid != null)
-            {
-                foreach (Particle p in pi.Particles)
-                {
-                    double aspectParticle = (p.height / p.width);
-                    if ((aspectParticle > sideaspectmin) && (aspectParticle < sideaspectmax) && (targetmid.right < p.left))
-                    {
-                        targetright = p;
-                        break;
-                    }
-                }
-                foreach (Particle p in pi.Particles)
-                {
-                    double aspectParticle = (p.height / p.width);
-                    if ((aspectParticle > sideaspectmin) && (aspectParticle < sideaspectmax) && (targetmid.left > p.right))
-                    {
-                        targetleft = p;
-                        break;
-                    }
-                }
-                //if ((p.left < center) && (p.right > center) && 
-                //    ((target == null) || (p.area > target.area))) {
-                //    target = p;
-            }
-                if (targetmid == null)
-                {
-                    // find largest particle
-                    foreach (Particle p in pi.Particles)
-                    {
-                        if ((targetmid == null) || (p.area > targetmid.area))
-                        {
-                            targetmid = p;
+
+            // look for side goals
+            if (targetmid != null) {
+                foreach (Particle p in pi.Particles) {
+                    if ((p.aspectratio > sideaspectmin) && (p.aspectratio < sideaspectmax)) {
+                        // we've got a side particle
+                        if (targetmid.right < p.left) {
+                            if ((targetright == null) || (p.area > targetright.area))
+                                targetright = p;  // take the biggest one
+                        }
+                        else if (targetmid.left > p.right) {
+                            if ((targetleft == null) || (p.area > targetleft.area))
+                                targetleft = p;   // take the biggest one
                         }
                     }
                 }
+            }
+            else {
+                // if we couldn't find anything above, look for the largest particle
+                foreach (Particle p in pi.Particles) {
+                    if ((targetmid == null) || (p.area > targetmid.area)) {
+                        targetmid = p;
+                    }
+                }
+            }
+
             if (targetmid != null)
                 targetcenter = targetmid.centerx;
             else

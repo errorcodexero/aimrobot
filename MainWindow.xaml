@@ -17,6 +17,7 @@
             <TextBlock Name="_direction" Width="80" Height="40" Opacity=".8" Canvas.Left="0" Canvas.Top="398" />
             <TextBlock Name="_connected" Width="60" Height="20" FontSize="10" TextAlignment="Center" Foreground="White" />
             <TextBlock Name="_report" Canvas.Left="0" Canvas.Top="450" Height="30" Opacity=".8"/>
+            <Button Canvas.Left="566" Canvas.Top="457" Content="Settings" Height="23" Name="_settingsbtn" Width="75" Click="_settingsbtn_Click" />
         </Canvas>
     </Viewbox>
 </Window>

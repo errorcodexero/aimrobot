@@ -10,7 +10,5 @@
         <TextBox Name="_luminance" HorizontalAlignment="Left" Margin="0,39,104,194" Text="220" Width="42" Canvas.Left="105" Canvas.Top="-11" ></TextBox>
         <Label Canvas.Left="0" Canvas.Top="60" Content="Frame Rate" />
         <TextBox Canvas.Left="105" Canvas.Top="60" Name="_framerate" Text="10" Width="42" HorizontalAlignment="Right" />
-        <Label Canvas.Left="0" Canvas.Top="92" Content="Horizontal Offset" />
-        <TextBox Name="_horizontaloffset" Canvas.Left="105" Canvas.Top="92" Text="0" Width="42" />
     </Canvas>
 </Window>

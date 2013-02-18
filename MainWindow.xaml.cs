@@ -26,8 +26,9 @@ namespace AimRobot {
     {
         DateTime _lastframetime = DateTime.Now;
         int fps = 30;
-        int _count;
+        int _framecount;
         string _tmppath;
+        AppSettings _settings; 
 
         DispatcherTimer dispatcherTimer;
         CameraMJPG _camera;
@@ -57,7 +58,6 @@ namespace AimRobot {
 
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged);
             Closing += new System.ComponentModel.CancelEventHandler(MainWindow_Closing);
-            MouseDown +=new MouseButtonEventHandler(MainWindow_MouseDown);
 
             _tmppath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "tmpimg.jpg");
 
@@ -85,31 +85,19 @@ namespace AimRobot {
         }
 
         public void Start() {
+            _settings = null; 
             _particlefinder = new ParticleFinder(Settings.Default.Luminance, false, 60 * 25);
             _camera = new CameraMJPG(Settings.Default.CameraURL, Settings.Default.FrameRate);
             _camera.Start();
-        }
-
-        // MainWindow_MouseDown opens the settings window, and restarts the camera with the 
-        // new settings.
-        void MainWindow_MouseDown(object sender, MouseButtonEventArgs e) {
-            AppSettings sp = new AppSettings(this);
-            sp.Visibility = Visibility.Visible;
-
-            if (_camera != null) {
-                _camera.Stop();
-                _camera = null;
-                // _stop = true;
-            }
         }
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
             if (_camera != null)
                 _camera.Stop();
 
-            Settings.Default.Left = (int) Left;
-            Settings.Default.Top = (int) Top;
-            Settings.Default.Width = (int) Width;
+            Settings.Default.Left   = (int) Left;
+            Settings.Default.Top    = (int) Top;
+            Settings.Default.Width  = (int) Width;
             Settings.Default.Height = (int) Height;
         }
 
@@ -118,9 +106,11 @@ namespace AimRobot {
             // throw new NotImplementedException();
         }
 
+        // drawRobotLines draws the lines, and aims for the selected target
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
-            int offset = rl.horizontaloffset + Settings.Default.HorizontalOffset;
+            int offset = rl.horizontaloffset;
+
             _centercamera.X1 = ((_particlefinder.imgwidth / 2) + offset);
             _centercamera.X2 = _centercamera.X1;
 
@@ -132,6 +122,8 @@ namespace AimRobot {
 
             _direction.Text = offset.ToString() + dir;
             _trim = _smartdashboard.GetDouble("trim");
+
+            _smartdashboard.SetDouble("frame", (double)_framecount);
 
             if (rl.targetmid != null) {
                 _smartdashboard.SetDouble("offset", (double)offset);
@@ -153,6 +145,7 @@ namespace AimRobot {
                 _smartdashboard.SetDouble("height", (double)0);
                 _smartdashboard.SetDouble("offset", (double)0);
             }
+
             if (rl.targetleft != null)
             {
                 _targetleft.Width = rl.targetleft.width;
@@ -167,6 +160,7 @@ namespace AimRobot {
                 _targetleft.Width = 0;
                 _targetleft.Height = 0; 
             }
+
             if (rl.targetright != null)
             {
                 _targetright.Width = rl.targetright.width;
@@ -181,25 +175,11 @@ namespace AimRobot {
                 _targetright.Width = 0;
                 _targetright.Height = 0;
             }
-            //if (rl.right != null) {
-            //    _rightgoal.Width = rl.right.width;
-            //    _rightgoal.Height = rl.right.height;
-            //    Canvas.SetTop(_rightgoal, rl.right.top);
-            //    Canvas.SetLeft(_rightgoal, rl.right.left);
-            //}
-
-            //if (rl.top != null) {
-            //    _topgoal.Width = rl.top.width;
-            //    _topgoal.Height = rl.top.height;
-            //    Canvas.SetTop(_topgoal, rl.top.top);
-            //    Canvas.SetLeft(_topgoal, rl.top.left);
-            //}
         }
 
         bool processCameraImage() {
             if ((_camera != null) && (_camera.NewImage)) {
                 byte[] img = _camera.Image;
-
 
                 if (img != null) {
                     WriteFile(img, _tmppath);
@@ -253,10 +233,10 @@ namespace AimRobot {
              bool newimg = processCameraImage();
 
              if (newimg) {
-                 if ((_count % 30) == 0) {
+                 if ((_framecount % 10) == 0) {
                      DateTime now = DateTime.Now;
                      TimeSpan delta = now - _lastframetime;
-                     fps = (int)(30000.0 / delta.TotalMilliseconds);
+                     fps = (int)(10000.0 / delta.TotalMilliseconds);
                      _lastframetime = now;
 
                      if (_ntconnection.Connected) {
@@ -269,11 +249,25 @@ namespace AimRobot {
                      }
                  }
 
-                 _count++;
+                 _framecount++;
 
-                 _report.Text = string.Format("frame {0} fps {1} {2} Aspect {3:0.00} trim {4}", 
-                     _count, fps, _particlefinder.Particles.Count, Aspect, _trim);
+                 _report.Text = string.Format("frame {0} fps {1} trim {2} Aspect {3}", _framecount, fps, _trim, Aspect);
              }
+        }
+
+        // _settingsbtn_Click opens the settings window, and restarts the camera with the 
+        // new settings.
+        private void _settingsbtn_Click(object sender, RoutedEventArgs e) {
+            if (_settings == null) {
+                _settings = new AppSettings(this);
+
+                _settings.Visibility = Visibility.Visible;
+
+                if (_camera != null) {
+                    _camera.Stop();
+                    _camera = null;
+                }
+            }
         }
     }
 }
