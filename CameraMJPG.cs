@@ -18,16 +18,16 @@ namespace AimRobot {
         int _wait;
 
         // http://10.14.25.11/
-        public const string httpmjpg = "axis-cgi/mjpg/video.cgi?resolution=640x480";
+        public const string httpmjpg = "axis-cgi/mjpg/video.cgi?resolution=640x480&fps=20&compression=60";
         public string baseurl = "http://10.14.25.11/";
         string _boundary = "--myboundary\r\n";
 
         public string fullurl;
-        // public string testurl = "http://localhost/video.jpg";
+        public string testurl = "http://localhost/video.jpg";
 
         void threadFn() {
             while (_running) {
-                GetMJPEGImage();
+                getMJPEGImage();
 
                 // Thread.Sleep(_wait);
             }
@@ -50,7 +50,84 @@ namespace AimRobot {
             }
         }
 
-        void GetMJPEGImage() {
+        void parseResponse(HttpWebResponse response) {
+            try {
+                HttpStatusCode status = response.StatusCode;
+
+                if (status == HttpStatusCode.OK) {
+                    using (Stream respstr = response.GetResponseStream()) {
+                        // find boundary.
+                        while (_running) {
+                            while (true) {
+                                string ln = readLine(respstr);
+                                if (ln == _boundary)
+                                    break;
+                            }
+
+                            string type = readLine(respstr);
+                            if (type == "Content-Type: image/jpeg\r\n") {
+                                string contentlen = readLine(respstr);
+                                int col = contentlen.IndexOf(':');
+
+                                if (col > 0) {
+                                    readLine(respstr);  // skip over extra blank line...
+
+                                    int size = Int32.Parse(contentlen.Substring(col + 1));
+
+                                    byte[] bits = new byte[size];
+                                    int offset = 0;
+                                    int count = bits.Length;
+                                    int r;
+
+                                    while ((r = respstr.Read(bits, offset, count)) > 0) {
+                                        offset += r;
+                                        count -= r;
+                                    }
+
+                                    lock (this) {
+                                        _newimage = true;
+                                        _image = bits;
+                                    }
+                                }
+                            }
+
+                            Connected = true;
+                        }
+                    }
+                }
+
+                response.Close();
+            }
+            catch (Exception e) {
+                Message = e.Message;
+
+                Connected = false;
+            }
+        }
+
+        void responseCallback(IAsyncResult asynchronousResult) {  
+            HttpWebRequest request = (HttpWebRequest) asynchronousResult.AsyncState;
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+            parseResponse(response);
+        }
+
+        void getMJPEGImageAsync() {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
+                request.KeepAlive = true;
+                request.ContentType = "image/jpeg";
+
+                request.BeginGetResponse(new AsyncCallback(responseCallback), request); 
+            }
+            catch (Exception e) {
+                Message = e.Message;
+            }
+            finally {
+            }
+        }
+
+        void getMJPEGImage() {
             try {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
                 request.KeepAlive = true;
@@ -58,50 +135,7 @@ namespace AimRobot {
 
                 HttpWebResponse response = (HttpWebResponse) request.GetResponse(); 
 
-                HttpStatusCode status = response.StatusCode;
-
-                byte[] buf = new byte[1024];
-
-                if (status == HttpStatusCode.OK) {
-                    using (Stream respstr = response.GetResponseStream()) {
-                        // find boundary.
-
-                        while (true) {
-                            string ln = readLine(respstr);
-                            if (ln == _boundary)
-                                break;
-                        }
-
-                        string type = readLine(respstr);
-                        if (type == "Content-Type: image/jpeg\r\n") {
-                            string contentlen = readLine(respstr);
-                            int col = contentlen.IndexOf(':');
-
-                            if (col > 0) {
-                                readLine(respstr);  // skip over extra blank line...
-
-                                int size = Int32.Parse(contentlen.Substring(col + 1));
-
-                                byte[] bits = new byte[size];
-                                int offset = 0;
-                                int count = bits.Length;
-                                int r;
-
-                                while ((r = respstr.Read(bits, offset, count)) > 0) {
-                                    offset += r;
-                                    count -= r;
-                                }
-
-                                lock (this) {
-                                    _newimage = true;
-                                    _image = bits;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                response.Close();
+                parseResponse(response);
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -124,9 +158,11 @@ namespace AimRobot {
         }
 
         public void Start() {
-            _t = new Thread(new ThreadStart(threadFn));
-            _t.Start();
-            _t.IsBackground = true;
+            //_t = new Thread(new ThreadStart(threadFn));
+            //_t.Start();
+            //_t.IsBackground = true;
+
+            getMJPEGImageAsync();
         }
 
         public void Stop() {
@@ -159,5 +195,9 @@ namespace AimRobot {
                     return _newimage; 
             }
         }
+
+        public bool Connected;
+
+        public string Message;
     }
 }

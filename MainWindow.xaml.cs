@@ -154,26 +154,23 @@ namespace AimRobot {
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
 
-            _targetoffset = rl.horizontaloffset;
-            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + _targetoffset);
-            _centercamera.X2 = _centercamera.X1;
+            string targetSelection = _smartdashboard.GetString("targetSelection");
 
-            string dir = string.Empty;
-            if (_targetoffset > 0)
-                dir = " Left";
-            else if (_targetoffset < 0)
-                dir = " Right";
+            Particle target = null;
 
-            _direction.Text = _targetoffset.ToString() + dir;
+            switch (targetSelection)
+            {
+                case "mid": target = rl.targetmid;
+                break;
+                case "left": target = rl.targetleft;
+                break;
+                case "right": target = rl.targetright;
+                break;
+            }
+
             _trim = _smartdashboard.GetDouble("trim");
 
-            _smartdashboard.SetDouble("frameNum", (double)_framecount);
-
             if (rl.targetmid != null) {
-                _smartdashboard.SetDouble("offset", (double)_targetoffset);
-                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
-                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
-
                 _targetmid.Width = rl.targetmid.width;
                 _targetmid.Height = rl.targetmid.height;
                 Canvas.SetTop(_targetmid, rl.targetmid.top);
@@ -184,14 +181,9 @@ namespace AimRobot {
             else {
                 _targetmid.Width = 0;
                 _targetmid.Height = 0;
-
-                _smartdashboard.SetDouble("width", (double)0);
-                _smartdashboard.SetDouble("height", (double)0);
-                _smartdashboard.SetDouble("offset", (double)0);
             }
 
-            if (rl.targetleft != null)
-            {
+            if (rl.targetleft != null) {
                 _targetleft.Width = rl.targetleft.width;
                 _targetleft.Height = rl.targetleft.height;
                 Canvas.SetTop(_targetleft, rl.targetleft.top);
@@ -199,14 +191,12 @@ namespace AimRobot {
 
                 Aspect = (rl.targetleft.height / rl.targetleft.width);
             }
-            else
-            {
+            else {
                 _targetleft.Width = 0;
                 _targetleft.Height = 0; 
             }
 
-            if (rl.targetright != null)
-            {
+            if (rl.targetright != null) {
                 _targetright.Width = rl.targetright.width;
                 _targetright.Height = rl.targetright.height;
                 Canvas.SetTop(_targetright, rl.targetright.top);
@@ -214,11 +204,37 @@ namespace AimRobot {
 
                 Aspect = (rl.targetright.height / rl.targetright.width);
             }
-            else
-            {
+            else {
                 _targetright.Width = 0;
                 _targetright.Height = 0;
             }
+
+            double targetcenter;
+
+            if (target != null)
+                targetcenter = target.centerx;
+            else
+                targetcenter = 0;
+
+            int offset = ((int)Math.Round(targetcenter)) - (rl.imgwidth / 2);
+
+            if (target != null) {
+                _smartdashboard.SetDouble("offset", (double)offset);
+                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
+                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
+            }
+            else {  
+                // dang, no target
+                _targetmid.Width = 0;
+                _targetmid.Height = 0;
+
+                _smartdashboard.SetDouble("width", (double)0);
+                _smartdashboard.SetDouble("height", (double)0);
+                _smartdashboard.SetDouble("offset", (double)0);
+
+            }
+
+            _smartdashboard.SetDouble("frameNum", (double)_framecount);
         }
 
         bool processCameraImage() {
