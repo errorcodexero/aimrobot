@@ -19,15 +19,12 @@ namespace AimRobot {
         public Particle targetmid;  // middle goal
         public Particle targetleft; // left goal
         public Particle targetright; // right goal
-
-        public int imgwidth, imgheight;
-        public int horizontaloffset;
-        public double targetcenter;
+        public int imgwidth, imgheight, center;
 
         double midaspectmax = .385; // (10.0in / 31.0in) + 10% for error
         double midaspectmin = .29; // (10.0in / 31.0in) - 10% for error
 
-        double sideaspectmax = .6; // (29.0in / 62.0in) + 10% for error
+        double sideaspectmax = .61; // (29.0in / 62.0in) + 10% for error
         double sideaspectmin = .386; // (29.0in / 62.0in) - 10% for error
 
         public static int compareParticleSize(Particle p1,

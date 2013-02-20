@@ -27,9 +27,14 @@ namespace AimRobot {
 
         void threadFn() {
             while (_running) {
-                getMJPEGImage();
+                // getMJPEGImage();
 
-                // Thread.Sleep(_wait);
+                if (!Connected) {
+                    Connected = true;
+                    getMJPEGImageAsync();
+                }
+
+                Thread.Sleep(1000);
             }
         }
 
@@ -105,11 +110,17 @@ namespace AimRobot {
             }
         }
 
-        void responseCallback(IAsyncResult asynchronousResult) {  
-            HttpWebRequest request = (HttpWebRequest) asynchronousResult.AsyncState;
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+        void responseCallback(IAsyncResult asynchronousResult) {
+            try {
+                HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-            parseResponse(response);
+                parseResponse(response);
+            }
+            catch (Exception ex) {
+                Message = ex.Message;
+                Connected = false;
+            }
         }
 
         void getMJPEGImageAsync() {
@@ -158,11 +169,9 @@ namespace AimRobot {
         }
 
         public void Start() {
-            //_t = new Thread(new ThreadStart(threadFn));
-            //_t.Start();
-            //_t.IsBackground = true;
-
-            getMJPEGImageAsync();
+            _t = new Thread(new ThreadStart(threadFn));
+            _t.Start();
+            _t.IsBackground = true;
         }
 
         public void Stop() {

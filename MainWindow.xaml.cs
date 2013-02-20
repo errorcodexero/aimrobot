@@ -36,10 +36,10 @@ namespace AimRobot {
         NetworkTableConnection _ntconnection;
         NetworkTable _smartdashboard;
         Line _centerveritical;
-        double Aspect;
         double _trim;
         bool _aiming = false;
-        int _targetoffset;
+        int _targetoffset;  // offset from center to selected target
+        int _lasttargetoffset; // used to see if we're still moving after we've "stopped"
         StreamWriter _log;
 
         void WriteFile(byte[] bits, string path) {
@@ -81,7 +81,7 @@ namespace AimRobot {
 
             dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
             dispatcherTimer.Start();
 
             Left = Settings.Default.Left;
@@ -127,7 +127,7 @@ namespace AimRobot {
 
                 _aiming = true;
             }
-            else if (!a && _aiming) {
+            else if (!a && _aiming && (_lasttargetoffset == _targetoffset)) {
                 // we're done aiming
                 int cycles = (int) _smartdashboard.GetDouble("aimExCycles");
                 int frames = (int) _smartdashboard.GetDouble("aimFrames");
@@ -144,16 +144,15 @@ namespace AimRobot {
 
                 // done with aiming.
             }
-            // else if (a && _aiming) {
-                // we're in the process of aiming
-            //}
-            // else we shouldn't be aiming.
+
+            _lasttargetoffset = _targetoffset;
         }
 
         // drawRobotLines draws the lines, and aims for the selected target
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
             string targetSelection = _smartdashboard.GetString("targetSelection");
+
             Particle target = null;
 
             switch (targetSelection) {
@@ -172,8 +171,6 @@ namespace AimRobot {
                 _targetmid.Height = rl.targetmid.height;
                 Canvas.SetTop(_targetmid, rl.targetmid.top);
                 Canvas.SetLeft(_targetmid, rl.targetmid.left);
-
-                Aspect = (rl.targetmid.height / rl.targetmid.width);
             }
             else {
                 _targetmid.Width = 0;
@@ -185,12 +182,10 @@ namespace AimRobot {
                 _targetleft.Height = rl.targetleft.height;
                 Canvas.SetTop(_targetleft, rl.targetleft.top);
                 Canvas.SetLeft(_targetleft, rl.targetleft.left);
-
-                Aspect = (rl.targetleft.height / rl.targetleft.width);
             }
             else {
                 _targetleft.Width = 0;
-                _targetleft.Height = 0; 
+                _targetleft.Height = 0;
             }
 
             if (rl.targetright != null) {
@@ -198,43 +193,40 @@ namespace AimRobot {
                 _targetright.Height = rl.targetright.height;
                 Canvas.SetTop(_targetright, rl.targetright.top);
                 Canvas.SetLeft(_targetright, rl.targetright.left);
-
-                Aspect = (rl.targetright.height / rl.targetright.width);
             }
             else {
                 _targetright.Width = 0;
                 _targetright.Height = 0;
             }
 
-            double targetcenter;
+            double targetcenter = (target != null) ? target.centerx : 0;
+            _targetoffset = ((int)Math.Round(targetcenter)) - (rl.imgwidth / 2);
 
-            if (target != null)
-                targetcenter = target.centerx;
-            else
-                targetcenter = 0;
-
-            int offset = ((int)Math.Round(targetcenter)) - (rl.imgwidth / 2);
-
-            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + _targetoffset);
+            _centercamera.X1 = ((rl.imgwidth / 2) + _targetoffset);
             _centercamera.X2 = _centercamera.X1;
 
             if (target != null) {
-                _smartdashboard.SetDouble("offset", (double)offset);
-                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
-                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
+                _smartdashboard.SetDouble("offset", (double)_targetoffset);
+                // _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
+                // _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
             }
-            else {  
+            else {
                 // dang, no target
-                _targetmid.Width = 0;
-                _targetmid.Height = 0;
-
                 _smartdashboard.SetDouble("width", (double)0);
-                _smartdashboard.SetDouble("height", (double)0);
-                _smartdashboard.SetDouble("offset", (double)0);
+                // _smartdashboard.SetDouble("height", (double)0);
+                // _smartdashboard.SetDouble("offset", (double)0);
 
             }
 
             _smartdashboard.SetDouble("frameNum", (double)_framecount);
+
+            string dir = string.Empty;
+            if (_targetoffset > 0)
+                dir = " Right";
+            else if (_targetoffset < 0)
+                dir = " Left";
+
+            _direction.Text = _targetoffset.ToString() + dir;
         }
 
         bool processCameraImage() {
@@ -298,22 +290,22 @@ namespace AimRobot {
                      TimeSpan delta = now - _lastframetime;
                      fps = (int)(10000.0 / delta.TotalMilliseconds);
                      _lastframetime = now;
-
-                     if (_ntconnection.Connected) {
-                         _connected.Background = Brushes.Green;
-                         _connected.Text = "connected";
-                     }
-                     else {
-                         _connected.Background = Brushes.Red;
-                         _connected.Text = "disconnected";
-                     }
                  }
 
                  _framecount++;
 
-                 _report.Text = string.Format("frame {0} fps {1} trim {2} Aspect {3}", _framecount, fps, _trim, Aspect);
+                 _report.Text = string.Format("frame {0} fps {1} trim {2} aiming {3}", _framecount, fps, _trim, _aiming);
 
-                 // reportAiming();
+                 reportAiming();
+             }
+
+             if (_ntconnection.Connected) {
+                 _connected.Background = Brushes.Green;
+                 _connected.Text = "connected";
+             }
+             else {
+                 _connected.Background = Brushes.Red;
+                 _connected.Text = "disconnected";
              }
         }
 
