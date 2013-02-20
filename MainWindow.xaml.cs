@@ -119,23 +119,23 @@ namespace AimRobot {
 
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
-            int offset = rl.horizontaloffset + Settings.Default.HorizontalOffset;
-            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + offset);
-            _centercamera.X2 = _centercamera.X1;
 
-            string dir = string.Empty;
-            if (offset > 0)
-                dir = " Right";
-            else if (offset < 0)
-                dir = " Left";
+            string targetSelection = _smartdashboard.GetString("targetSelection");
 
-            _direction.Text = offset.ToString() + dir;
+            Particle target = null;
+
+            switch (targetSelection)
+            {
+                case "mid": target = rl.targetmid;
+                break;
+                case "left": target = rl.targetleft;
+                break;
+                case "right": target = rl.targetright;
+                break;
+            }
 
             if (rl.targetmid != null) {
-                _smartdashboard.SetDouble("offset", (double)offset);
-                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
-                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
-
+                
                 _targetmid.Width = rl.targetmid.width;
                 _targetmid.Height = rl.targetmid.height;
                 Canvas.SetTop(_targetmid, rl.targetmid.top);
@@ -143,14 +143,7 @@ namespace AimRobot {
 
                 Aspect = (rl.targetmid.height / rl.targetmid.width);
             }
-            else {
-                _targetmid.Width = 0;
-                _targetmid.Height = 0;
-
-                _smartdashboard.SetDouble("width", (double)0);
-                _smartdashboard.SetDouble("height", (double)0);
-                _smartdashboard.SetDouble("offset", (double)0);
-            }
+            
             if (rl.targetleft != null)
             {
                 _targetleft.Width = rl.targetleft.width;
@@ -179,19 +172,45 @@ namespace AimRobot {
                 _targetright.Width = 0;
                 _targetright.Height = 0;
             }
-            //if (rl.right != null) {
-            //    _rightgoal.Width = rl.right.width;
-            //    _rightgoal.Height = rl.right.height;
-            //    Canvas.SetTop(_rightgoal, rl.right.top);
-            //    Canvas.SetLeft(_rightgoal, rl.right.left);
-            //}
 
-            //if (rl.top != null) {
-            //    _topgoal.Width = rl.top.width;
-            //    _topgoal.Height = rl.top.height;
-            //    Canvas.SetTop(_topgoal, rl.top.top);
-            //    Canvas.SetLeft(_topgoal, rl.top.left);
-            //}
+            double targetcenter;
+
+            if (target != null)
+                targetcenter = target.centerx;
+            else
+                targetcenter = 0;
+            int horizontaloffset = ((int)Math.Round(targetcenter)) - (rl.imgwidth / 2);
+            
+            int offset = horizontaloffset + Settings.Default.HorizontalOffset;
+            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + offset);
+            _centercamera.X2 = _centercamera.X1;
+
+            if (target != null)
+            {
+                _smartdashboard.SetDouble("offset", (double)offset);
+                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
+                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
+            }
+            else
+            {
+                _targetmid.Width = 0;
+                _targetmid.Height = 0;
+
+                _smartdashboard.SetDouble("width", (double)0);
+                _smartdashboard.SetDouble("height", (double)0);
+                _smartdashboard.SetDouble("offset", (double)0);
+
+            }
+
+            string dir = string.Empty;
+            if (offset > 0)
+                dir = " Right";
+            else if (offset < 0)
+                dir = " Left";
+
+            _direction.Text = offset.ToString() + dir;
+
+
         }
 
         bool processCameraImage() {

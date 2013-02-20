@@ -23,15 +23,13 @@ namespace AimRobot {
         public Particle targetright; // right goal
 
         public int imgwidth, imgheight, center;
-        public int horizontaloffset;
-        public double targetcenter;
 
         public double distance;
 
         double midaspectmax = .385; // (10.0in / 31.0in) + 10% for error
         double midaspectmin = .29; // (10.0in / 31.0in) - 10% for error
 
-        double sideaspectmax = .6; // (29.0in / 62.0in) + 10% for error
+        double sideaspectmax = .61; // (29.0in / 62.0in) + 10% for error
         double sideaspectmin = .386; // (29.0in / 62.0in) - 10% for error
 
         double DegreesToRadians(double angle) {
@@ -104,12 +102,7 @@ namespace AimRobot {
                         }
                     }
                 }
-            if (targetmid != null)
-                targetcenter = targetmid.centerx;
-            else
-                targetcenter = 0;
-
-            horizontaloffset = ((int) Math.Round(targetcenter)) - (imgwidth / 2);
+          
         }
     }
 }
