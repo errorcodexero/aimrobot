@@ -138,13 +138,6 @@ namespace AimRobot {
             else if (_particles.Count == 1) {
                 targetmid = _particles[0];
             }
-
-            if (targetmid != null)
-                targetcenter = targetmid.centerx;
-            else
-                targetcenter = 0;
-
-            horizontaloffset = ((int) Math.Round(targetcenter)) - (imgwidth / 2);
         }
     }
 }

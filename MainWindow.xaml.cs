@@ -153,19 +153,16 @@ namespace AimRobot {
         // drawRobotLines draws the lines, and aims for the selected target
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
-
             string targetSelection = _smartdashboard.GetString("targetSelection");
-
             Particle target = null;
 
-            switch (targetSelection)
-            {
+            switch (targetSelection) {
                 case "mid": target = rl.targetmid;
-                break;
+                    break;
                 case "left": target = rl.targetleft;
-                break;
+                    break;
                 case "right": target = rl.targetright;
-                break;
+                    break;
             }
 
             _trim = _smartdashboard.GetDouble("trim");
@@ -217,6 +214,9 @@ namespace AimRobot {
                 targetcenter = 0;
 
             int offset = ((int)Math.Round(targetcenter)) - (rl.imgwidth / 2);
+
+            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + _targetoffset);
+            _centercamera.X2 = _centercamera.X1;
 
             if (target != null) {
                 _smartdashboard.SetDouble("offset", (double)offset);
