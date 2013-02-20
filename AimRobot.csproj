@@ -59,6 +59,7 @@
     <Compile Include="AppSettings.xaml.cs">
       <DependentUpon>AppSettings.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CameraMJPG.cs" />
     <Compile Include="RobotLocator.cs" />
     <Compile Include="RobotPoint.cs" />
     <Page Include="AppSettings.xaml">

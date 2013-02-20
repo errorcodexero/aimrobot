@@ -254,7 +254,8 @@ namespace NetworkTables {
         // init cranks up the socket, and processes the SERVER_HELLO_COMPLETE message.
         void init() {
             // initialize socket
-            _cRIOConnection = new TcpClient(RobotHost, NetworkTablePort);
+            _cRIOConnection = new TcpClient();
+            _cRIOConnection.Connect(RobotHost, NetworkTablePort);
             _nstream = _cRIOConnection.GetStream();
             _cRIOConnection.NoDelay = true;
 

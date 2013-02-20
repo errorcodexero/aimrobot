@@ -16,6 +16,7 @@ namespace AimRobot {
         bool _newimage;
         int _wait;
 
+        // http://10.14.25.11/
         public const string httpjpg = "jpg/image.jpg";
         public string baseurl = "http://10.14.25.11/";
 
@@ -73,6 +74,44 @@ namespace AimRobot {
             request.BeginGetResponse(new AsyncCallback(responseCallback), request); 
         }
 
+        void GetMJPEGImage() {
+            try {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
+                request.KeepAlive = false;
+                request.ContentType = "image/jpeg";
+
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse(); 
+
+                HttpStatusCode status = response.StatusCode;
+
+                if (status == HttpStatusCode.OK) {
+                    using (Stream respstr = response.GetResponseStream()) {
+                        byte[] bits = new byte[response.ContentLength];
+                        int offset = 0;
+                        int count = bits.Length;
+                        int r;
+
+                        while ((r = respstr.Read(bits, offset, count)) > 0) {
+                            offset += r;
+                            count -= r;
+                        }
+
+                        lock (this) {
+                            _newimage = true;
+                            _image = bits;
+                        }
+                    }
+                }
+
+                response.Close();
+            }
+            catch (Exception e) {
+                Console.WriteLine(e);
+            }
+            finally {
+            }
+        }
+
         void GetImage() {
             try {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
@@ -117,10 +156,10 @@ namespace AimRobot {
         //
         ///////////////////////////////////////////////////////////////////////////
         public Camera(string url, uint fps) {
-            fullurl = url + httpjpg; // +"?resolution=320x240"; // +"?compression=25";
+            fullurl = url + httpjpg;
 
+            // fullurl = url + httpjpg; // +"?resolution=320x240"; // +"?compression=25";
             // fullurl = testurl;
-
             // _wait = (int) (1000 / fps);
             _wait = 1;
         }

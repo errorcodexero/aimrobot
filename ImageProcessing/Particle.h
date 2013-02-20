@@ -17,7 +17,7 @@ namespace Vision {
         }
 
       public:
-        System::Double left, top, width, height, right, bottom, centerx, centery, area;
+        System::Double left, top, width, height, right, bottom, centerx, centery, area, aspectratio;
 
         Particle() {
         }
@@ -43,6 +43,7 @@ namespace Vision {
             this->bottom = top + height;
             this->right = left + width;
             this->area = width * height;
+            this->aspectratio = height / width;
 
           Error:
             return;

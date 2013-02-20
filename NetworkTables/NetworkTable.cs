@@ -76,6 +76,16 @@ namespace NetworkTables {
                 return (double) e.value;
         }
 
+        // GetBool retrives the specified Boolean value.
+        public bool GetBool(string name) {
+            Entity e = findEntity(name);
+
+            if (e == null)
+                return false;
+            else
+                return (bool) e.value;
+        }
+
         // SetDouble writes a new value for the specified double.
         public void SetDouble(string name, double val) {
             Entity e = findEntity(name);

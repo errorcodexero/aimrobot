@@ -26,21 +26,32 @@ namespace AimRobot {
     {
         DateTime _lastframetime = DateTime.Now;
         int fps = 30;
-        int _count;
+        int _framecount;
         string _tmppath;
+        AppSettings _settings; 
 
         DispatcherTimer dispatcherTimer;
-        Camera _camera;
+        CameraMJPG _camera;
         ParticleFinder _particlefinder;
         NetworkTableConnection _ntconnection;
         NetworkTable _smartdashboard;
         Line _centerveritical;
         double Aspect;
+        double _trim;
+        bool _aiming = false;
+        int _targetoffset;
+        StreamWriter _log;
 
         void WriteFile(byte[] bits, string path) {
             using (FileStream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None)) {
                 fs.Write(bits, 0, (int)bits.Length);
             }
+        }
+
+        string timestamp() {
+            DateTime now = DateTime.Now;
+
+            return now.ToString("hh:mm:ss.ff");
         }
 
         public MainWindow() {
@@ -56,7 +67,6 @@ namespace AimRobot {
 
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged);
             Closing += new System.ComponentModel.CancelEventHandler(MainWindow_Closing);
-            MouseDown +=new MouseButtonEventHandler(MainWindow_MouseDown);
 
             _tmppath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "tmpimg.jpg");
 
@@ -68,11 +78,10 @@ namespace AimRobot {
             _report.TextAlignment = TextAlignment.Left;
             _report.FontFamily = new FontFamily("Courier New");
             _report.FontSize = 16;
-            // Canvas.SetTop(_report, 0);
 
             dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 5);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 10);
             dispatcherTimer.Start();
 
             Left = Settings.Default.Left;
@@ -84,31 +93,19 @@ namespace AimRobot {
         }
 
         public void Start() {
+            _settings = null; 
             _particlefinder = new ParticleFinder(Settings.Default.Luminance, false, 60 * 25);
-            _camera = new Camera(Settings.Default.CameraURL, Settings.Default.FrameRate);
+            _camera = new CameraMJPG(Settings.Default.CameraURL, Settings.Default.FrameRate);
             _camera.Start();
-        }
-
-        // MainWindow_MouseDown opens the settings window, and restarts the camera with the 
-        // new settings.
-        void MainWindow_MouseDown(object sender, MouseButtonEventArgs e) {
-            AppSettings sp = new AppSettings(this);
-            sp.Visibility = Visibility.Visible;
-
-            if (_camera != null) {
-                _camera.Stop();
-                _camera = null;
-                // _stop = true;
-            }
         }
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
             if (_camera != null)
                 _camera.Stop();
 
-            Settings.Default.Left = (int) Left;
-            Settings.Default.Top = (int) Top;
-            Settings.Default.Width = (int) Width;
+            Settings.Default.Left   = (int) Left;
+            Settings.Default.Top    = (int) Top;
+            Settings.Default.Width  = (int) Width;
             Settings.Default.Height = (int) Height;
         }
 
@@ -117,8 +114,46 @@ namespace AimRobot {
             // throw new NotImplementedException();
         }
 
+        void reportAiming() 
+        {
+            bool a = _smartdashboard.GetBool("aiming");
+
+            if (_log != null)
+                _log.WriteLine("{0}\tFrame\t{1}\tOffset\t{2}", timestamp(), _framecount, _targetoffset);
+
+            if (a && !_aiming) {
+                // somebody pressed the aim button;
+                _log = File.AppendText("c:/temp/aim.log");
+
+                _aiming = true;
+            }
+            else if (!a && _aiming) {
+                // we're done aiming
+                int cycles = (int) _smartdashboard.GetDouble("aimExCycles");
+                int frames = (int) _smartdashboard.GetDouble("aimFrames");
+                double tm = _smartdashboard.GetDouble("aimTime");
+
+                if (_log != null) {
+                    _log.WriteLine("{0}\tCycles\t{1}\tFrames\t{2}\tTime\t{3:0.00}", timestamp(), cycles, frames, tm);
+                    _log.Flush();
+                    _log.Close();
+                    _log = null;
+                }
+                else
+                    _aiming = false; // something got broken
+
+                // done with aiming.
+            }
+            // else if (a && _aiming) {
+                // we're in the process of aiming
+            //}
+            // else we shouldn't be aiming.
+        }
+
+        // drawRobotLines draws the lines, and aims for the selected target
         void drawRobotLines() {
             RobotLocator rl = new RobotLocator(_particlefinder);
+<<<<<<< HEAD
 
             string targetSelection = _smartdashboard.GetString("targetSelection");
 
@@ -133,6 +168,28 @@ namespace AimRobot {
                 case "right": target = rl.targetright;
                 break;
             }
+=======
+
+            _targetoffset = rl.horizontaloffset;
+            _centercamera.X1 = ((_particlefinder.imgwidth / 2) + _targetoffset);
+            _centercamera.X2 = _centercamera.X1;
+
+            string dir = string.Empty;
+            if (_targetoffset > 0)
+                dir = " Left";
+            else if (_targetoffset < 0)
+                dir = " Right";
+
+            _direction.Text = _targetoffset.ToString() + dir;
+            _trim = _smartdashboard.GetDouble("trim");
+
+            _smartdashboard.SetDouble("frameNum", (double)_framecount);
+
+            if (rl.targetmid != null) {
+                _smartdashboard.SetDouble("offset", (double)_targetoffset);
+                _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
+                _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
+>>>>>>> 2730b4ff473a10776c8301f53a961d955838b03e
 
             if (rl.targetmid != null) {
                 
@@ -143,7 +200,19 @@ namespace AimRobot {
 
                 Aspect = (rl.targetmid.height / rl.targetmid.width);
             }
+<<<<<<< HEAD
             
+=======
+            else {
+                _targetmid.Width = 0;
+                _targetmid.Height = 0;
+
+                _smartdashboard.SetDouble("width", (double)0);
+                _smartdashboard.SetDouble("height", (double)0);
+                _smartdashboard.SetDouble("offset", (double)0);
+            }
+
+>>>>>>> 2730b4ff473a10776c8301f53a961d955838b03e
             if (rl.targetleft != null)
             {
                 _targetleft.Width = rl.targetleft.width;
@@ -158,6 +227,7 @@ namespace AimRobot {
                 _targetleft.Width = 0;
                 _targetleft.Height = 0; 
             }
+
             if (rl.targetright != null)
             {
                 _targetright.Width = rl.targetright.width;
@@ -172,6 +242,7 @@ namespace AimRobot {
                 _targetright.Width = 0;
                 _targetright.Height = 0;
             }
+<<<<<<< HEAD
 
             double targetcenter;
 
@@ -211,6 +282,8 @@ namespace AimRobot {
             _direction.Text = offset.ToString() + dir;
 
 
+=======
+>>>>>>> 2730b4ff473a10776c8301f53a961d955838b03e
         }
 
         bool processCameraImage() {
@@ -218,6 +291,8 @@ namespace AimRobot {
                 byte[] img = _camera.Image;
 
                 if (img != null) {
+                    WriteFile(img, _tmppath);
+
                     BitmapImage bi = new BitmapImage();
                     using (MemoryStream m = new MemoryStream(img)) {
                         bi.BeginInit();
@@ -226,7 +301,6 @@ namespace AimRobot {
                         bi.EndInit();
                     }
 
-                    WriteFile(img, _tmppath);
                     string pngpath = _particlefinder.ProcessPath(_tmppath);
                     // BitmapImage bi = new BitmapImage(new Uri(pngpath));
 
@@ -266,28 +340,44 @@ namespace AimRobot {
 
         void dispatcherTimer_Tick(object sender, EventArgs e) {
              bool newimg = processCameraImage();
-            // bool newimg = processVideoImage();
 
-            if ((_count % 30) == 0) {
-                DateTime now = DateTime.Now;
-                TimeSpan delta = now - _lastframetime;
-                fps = (int)(30000.0 / delta.TotalMilliseconds);
-                _lastframetime = now;
+             if (newimg) {
+                 if ((_framecount % 10) == 0) {
+                     DateTime now = DateTime.Now;
+                     TimeSpan delta = now - _lastframetime;
+                     fps = (int)(10000.0 / delta.TotalMilliseconds);
+                     _lastframetime = now;
 
-                if (_ntconnection.Connected) {
-                    _connected.Background = Brushes.Green;
-                    _connected.Text = "connected";
+                     if (_ntconnection.Connected) {
+                         _connected.Background = Brushes.Green;
+                         _connected.Text = "connected";
+                     }
+                     else {
+                         _connected.Background = Brushes.Red;
+                         _connected.Text = "disconnected";
+                     }
+                 }
+
+                 _framecount++;
+
+                 _report.Text = string.Format("frame {0} fps {1} trim {2} Aspect {3}", _framecount, fps, _trim, Aspect);
+
+                 // reportAiming();
+             }
+        }
+
+        // _settingsbtn_Click opens the settings window, and restarts the camera with the 
+        // new settings.
+        private void _settingsbtn_Click(object sender, RoutedEventArgs e) {
+            if (_settings == null) {
+                _settings = new AppSettings(this);
+
+                _settings.Visibility = Visibility.Visible;
+
+                if (_camera != null) {
+                    _camera.Stop();
+                    _camera = null;
                 }
-                else {
-                    _connected.Background = Brushes.Red;
-                    _connected.Text = "disconnected";
-                }
-            }
-
-            if (newimg) {
-                _count++;
-
-                _report.Text = string.Format("frame {0} fps {1} {2} Aspect {3}", _count, fps, _particlefinder.Particles.Count, Aspect);
             }
         }
     }

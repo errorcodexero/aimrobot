@@ -28,15 +28,20 @@ namespace AimRobot {
             _cameraurl.Text = Settings.Default.CameraURL;
             _luminance.Text = Settings.Default.Luminance.ToString();
             _framerate.Text = Settings.Default.FrameRate.ToString();
-            _horizontaloffset.Text = Settings.Default.HorizontalOffset.ToString();
+
+            Closing += new System.ComponentModel.CancelEventHandler(AppSettings_Closing);
         }
+
+        void AppSettings_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
+            _mw.Start();
+        }
+
 
         private void _save_Click(object sender, RoutedEventArgs e) {
             try {
                 Settings.Default.Luminance = Byte.Parse(_luminance.Text);
                 Settings.Default.CameraURL = _cameraurl.Text;
                 Settings.Default.FrameRate = UInt32.Parse(_framerate.Text);
-                Settings.Default.HorizontalOffset = Int32.Parse(_horizontaloffset.Text);
 
                 Settings.Default.Save();
 
