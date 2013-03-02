@@ -106,5 +106,17 @@ namespace AimRobot.Properties {
                 this["Top"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int Trim {
+            get {
+                return ((int)(this["Trim"]));
+            }
+            set {
+                this["Trim"] = value;
+            }
+        }
     }
 }

@@ -23,7 +23,7 @@ namespace AimRobot {
         public string fullurl;
         // public string testurl = "http://localhost/fake-img1.png";
         // public string testurl = "http://localhost/11-0-straight.jpg";
-        // public string testurl = "http://localhost/img2.png";
+        public string testurl = "http://localhost/img3.png";
 
         void responseCallback(IAsyncResult asynchronousResult) {  
             _image = null;
@@ -63,52 +63,6 @@ namespace AimRobot {
                 GetImage();
 
                 // Thread.Sleep(_wait);
-            }
-        }
-
-        void GetImageAsync() {
-            HttpWebRequest request = (HttpWebRequest) WebRequest.Create(fullurl);
-            request.KeepAlive = false;
-            request.ContentType = "image/jpeg";
-
-            request.BeginGetResponse(new AsyncCallback(responseCallback), request); 
-        }
-
-        void GetMJPEGImage() {
-            try {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
-                request.KeepAlive = false;
-                request.ContentType = "image/jpeg";
-
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse(); 
-
-                HttpStatusCode status = response.StatusCode;
-
-                if (status == HttpStatusCode.OK) {
-                    using (Stream respstr = response.GetResponseStream()) {
-                        byte[] bits = new byte[response.ContentLength];
-                        int offset = 0;
-                        int count = bits.Length;
-                        int r;
-
-                        while ((r = respstr.Read(bits, offset, count)) > 0) {
-                            offset += r;
-                            count -= r;
-                        }
-
-                        lock (this) {
-                            _newimage = true;
-                            _image = bits;
-                        }
-                    }
-                }
-
-                response.Close();
-            }
-            catch (Exception e) {
-                Console.WriteLine(e);
-            }
-            finally {
             }
         }
 
@@ -156,10 +110,9 @@ namespace AimRobot {
         //
         ///////////////////////////////////////////////////////////////////////////
         public Camera(string url, uint fps) {
-            fullurl = url + httpjpg;
-
+            // fullurl = url + httpjpg;
             // fullurl = url + httpjpg; // +"?resolution=320x240"; // +"?compression=25";
-            // fullurl = testurl;
+            fullurl = testurl;
             // _wait = (int) (1000 / fps);
             _wait = 1;
         }
@@ -199,6 +152,10 @@ namespace AimRobot {
                 lock (this)
                     return _newimage; 
             }
+        }
+
+        public bool CheckConnected() {
+                return true;
         }
     }
 }

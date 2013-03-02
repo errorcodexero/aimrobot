@@ -16,6 +16,9 @@ namespace AimRobot {
         bool _running = true;
         bool _newimage;
         int _wait;
+        HttpWebRequest _request;
+        HttpWebResponse _response;
+        DateTime _lastframetime;
 
         // http://10.14.25.11/
         public const string httpmjpg = "axis-cgi/mjpg/video.cgi?resolution=640x480&fps=20&compression=60";
@@ -26,11 +29,13 @@ namespace AimRobot {
         public string testurl = "http://localhost/video.jpg";
 
         void threadFn() {
+            _lastframetime = DateTime.Now;
+
             while (_running) {
                 // getMJPEGImage();
 
-                if (!Connected) {
-                    Connected = true;
+                if (!Connected && !Connecting) {
+                    Connecting = true;
                     getMJPEGImageAsync();
                 }
 
@@ -55,12 +60,12 @@ namespace AimRobot {
             }
         }
 
-        void parseResponse(HttpWebResponse response) {
+        void parseResponse() {
             try {
-                HttpStatusCode status = response.StatusCode;
+                HttpStatusCode status = _response.StatusCode;
 
                 if (status == HttpStatusCode.OK) {
-                    using (Stream respstr = response.GetResponseStream()) {
+                    using (Stream respstr = _response.GetResponseStream()) {
                         // find boundary.
                         while (_running) {
                             while (true) {
@@ -96,26 +101,32 @@ namespace AimRobot {
                                 }
                             }
 
+                            _lastframetime = DateTime.Now;
                             Connected = true;
                         }
                     }
                 }
 
-                response.Close();
+                Message = "Disconnected";
+                Connected = false;
+                _response.Close();
             }
             catch (Exception e) {
                 Message = e.Message;
-
                 Connected = false;
             }
         }
 
         void responseCallback(IAsyncResult asynchronousResult) {
             try {
-                HttpWebRequest request = (HttpWebRequest)asynchronousResult.AsyncState;
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Connecting = false;
 
-                parseResponse(response);
+                _request = (HttpWebRequest)asynchronousResult.AsyncState;
+                _response = (HttpWebResponse)_request.GetResponse();
+
+                Connected = true;
+
+                parseResponse();
             }
             catch (Exception ex) {
                 Message = ex.Message;
@@ -129,6 +140,7 @@ namespace AimRobot {
                 request.KeepAlive = true;
                 request.ContentType = "image/jpeg";
 
+
                 request.BeginGetResponse(new AsyncCallback(responseCallback), request); 
             }
             catch (Exception e) {
@@ -140,13 +152,13 @@ namespace AimRobot {
 
         void getMJPEGImage() {
             try {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullurl);
-                request.KeepAlive = true;
-                request.ContentType = "image/jpeg";
+                _request = (HttpWebRequest)WebRequest.Create(fullurl);
+                _request.KeepAlive = true;
+                _request.ContentType = "image/jpeg";
 
-                HttpWebResponse response = (HttpWebResponse) request.GetResponse(); 
+                _response = (HttpWebResponse) _request.GetResponse(); 
 
-                parseResponse(response);
+                parseResponse();
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -205,7 +217,36 @@ namespace AimRobot {
             }
         }
 
+        public bool CheckConnected() {
+            TimeSpan diff = DateTime.Now - _lastframetime;
+
+            if (diff.TotalSeconds > 10) {
+
+                if (_response != null) {
+                    try {
+                        _response.Close();
+
+                        Stream respstr = _response.GetResponseStream();
+                        respstr.Close();
+
+                        _request.Abort();
+                    }
+                    catch {
+                    }
+
+                    _request = null;
+                    _response = null;
+                    Connected = false;
+                }
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
         public bool Connected;
+        public bool Connecting;
 
         public string Message;
     }
