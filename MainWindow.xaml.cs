@@ -195,7 +195,7 @@ namespace AimRobot {
                     break;
             }
             
-            adjustTrim();
+            // adjustTrim();
 
             if (rl.targetmid != null) {
                 _targetmid.Width = rl.targetmid.width;
