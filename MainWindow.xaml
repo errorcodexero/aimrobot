@@ -4,19 +4,16 @@
         Title="Aim Robot" Height="480" Width="640" SizeToContent="Height" WindowStyle="SingleBorderWindow" ResizeMode="CanResizeWithGrip" >
     <Viewbox >
         <Canvas Name="_canvas" Height="480" Width="640" >
-            <Canvas Name="_videocanvas">
-                <MediaElement Name="_video" Source="" />
-            </Canvas>
-            <Image Name="_image" />
+            <Image Name="_image" Height="480" Width="640" />
             <Line Name="_centerhorizontal" X1="0" Y1="240" X2="640" Y2="240" Stroke="Red" StrokeThickness="2" />
-            <Line Name="_centervertical" X1="320" Y1="0" X2="320" Y2="480" Stroke="Red" StrokeThickness="8" />
-            <Line Name="_centercamera" X1="320" Y1="0" X2="320" Y2="480" Stroke="Yellow" StrokeThickness="6" />
+            <Line Name="_cameracenter" X1="320" Y1="0" X2="320" Y2="480" Stroke="Red" StrokeThickness="8" />
+            <Line Name="_targetcenter" X1="320" Y1="0" X2="320" Y2="480" Stroke="Yellow" StrokeThickness="6" />
             <Rectangle Name="_targetmid" Canvas.Left="230" Canvas.Top="50" Width="180" Height="40" Fill="Orange" Opacity=".8" />
             <Rectangle Name="_targetleft" Canvas.Left="34" Canvas.Top="86" Width="180" Height="80" Fill="RoyalBlue" Opacity=".8" />
             <Rectangle Name="_targetright" Canvas.Left="420" Canvas.Top="86" Width="180" Height="80" Fill="RoyalBlue" Opacity=".8" />
-            <TextBlock Name="_direction" Width="80" Height="40" Opacity=".8" Canvas.Left="0" Canvas.Top="398" />
+            <TextBlock Name="_direction" Width="170" Height="30" Opacity=".7" Canvas.Left="0" Canvas.Top="425" FontSize="10" />
             <TextBlock Name="_connected" Width="60" Height="20" FontSize="10" TextAlignment="Center" Foreground="White" />
-            <TextBlock Name="_report" Canvas.Left="0" Canvas.Top="450" Height="30" Opacity=".8"/>
+            <TextBlock Name="_report" Canvas.Left="0" Canvas.Top="460" Height="20" Opacity=".5"/>
             <Button Canvas.Left="566" Canvas.Top="457" Content="Settings" Height="23" Name="_settingsbtn" Width="75" Click="_settingsbtn_Click" />
         </Canvas>
     </Viewbox>

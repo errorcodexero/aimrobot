@@ -23,7 +23,7 @@ namespace AimRobot {
         public string fullurl;
         // public string testurl = "http://localhost/fake-img1.png";
         // public string testurl = "http://localhost/11-0-straight.jpg";
-        public string testurl = "http://localhost/img3.png";
+        public string testurl = "http://localhost/fake-img1.png";
 
         void responseCallback(IAsyncResult asynchronousResult) {  
             _image = null;

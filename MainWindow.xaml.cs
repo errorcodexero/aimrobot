@@ -181,7 +181,7 @@ namespace AimRobot {
             string targetSelection = _smartdashboard.GetString("targetSelection");
 
             Particle target = null;
-
+            // targetSelection = "right";
             switch (targetSelection) {
                 case "left": 
                     target = rl.targetleft;
@@ -232,10 +232,12 @@ namespace AimRobot {
 
             int imgcenter = (rl.imgwidth / 2);
             double targetcenter = (target != null) ? target.centerx : 0;
-
             _targetoffset = (int)Math.Round(targetcenter - imgcenter);
-            _centercamera.X1   = _centercamera.X2   = (imgcenter + _targetoffset);
-            _centervertical.X1 = _centervertical.X2 = imgcenter - _trim;
+
+            // we draw the lines to reflect what you want to see in the image
+            _targetcenter.X1 = _targetcenter.X2 = (imgcenter + _targetoffset);
+            _cameracenter.X1 = _cameracenter.X2 = imgcenter + _trim;
+            _targetoffset -= _trim;
 
             if (target != null) {
                 _smartdashboard.SetDouble("offset", (double)_targetoffset);
@@ -253,12 +255,14 @@ namespace AimRobot {
 
             string dir = string.Empty;
 
-            if (_targetoffset > 0)
-                dir = " Right";
-            else if (_targetoffset < 0)
-                dir = " Left";
+            if (_targetoffset < 0)
+                dir = "left";
+            else if (_targetoffset > 0)
+                dir = "right";
+            else
+                dir = "centered";
 
-            _direction.Text = _targetoffset.ToString() + dir;
+            _direction.Text = string.Format(" target {0} ({1})", _targetoffset.ToString(), dir);
         }
 
         bool processCameraImage() {
@@ -294,7 +298,7 @@ namespace AimRobot {
             double dpi = 96;
             RenderTargetBitmap thumb = new RenderTargetBitmap((int)640, (int)480, dpi, dpi, PixelFormats.Pbgra32);
 
-            thumb.Render(_video);
+            // thumb.Render(_video);
 
             Image img = new Image();
             img.Source = thumb;

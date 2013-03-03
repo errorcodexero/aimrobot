@@ -12,6 +12,6 @@
         <TextBox Canvas.Left="105" Canvas.Top="60" Name="_framerate" Text="10" Width="42" HorizontalAlignment="Right" />
         <Label Canvas.Left="1" Canvas.Top="90" Content="Trim" />
         <TextBox Name="_trim" Canvas.Left="106" Canvas.Top="90" Text="0" Width="42" />
-        <Label Canvas.Left="8" Canvas.Top="105" Content="Increase to aim right" Width="136" Height="28" FontSize="10"/>
+        <Label Canvas.Left="8" Canvas.Top="105" Content="Increase to aim left" Width="136" Height="28" FontSize="10"/>
     </Canvas>
 </Window>
