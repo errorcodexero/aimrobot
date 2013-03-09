@@ -16,7 +16,7 @@ using System.IO;
 
 using Vision;
 using AimRobot.Properties;
-using NetworkTables;
+//using NetworkTables;
 
 namespace AimRobot {
 
@@ -32,8 +32,8 @@ namespace AimRobot {
         CameraMJPG _camera;
         // Camera _camera;
         ParticleFinder _particlefinder;
-        NetworkTableConnection _ntconnection;
-        NetworkTable _smartdashboard;
+        //NetworkTableConnection _ntconnection;
+        //NetworkTable _smartdashboard;
         double _robottrim; // as entered into the robot
         int _trim;         // as recorded in Settings
         bool _aiming = false;
@@ -59,9 +59,9 @@ namespace AimRobot {
 
             string dir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            _ntconnection = new NetworkTableConnection();
-            _ntconnection.Connect();
-            _smartdashboard = _ntconnection.GetTable("/SmartDashboard");
+            //_ntconnection = new NetworkTableConnection();
+            //_ntconnection.Connect();
+            //_smartdashboard = _ntconnection.GetTable("/SmartDashboard");
 
             SizeChanged += new SizeChangedEventHandler(MainWindow_SizeChanged);
             Closing += new System.ComponentModel.CancelEventHandler(MainWindow_Closing);
@@ -93,7 +93,7 @@ namespace AimRobot {
         public void Start() {
             _settings = null; 
             _particlefinder = new ParticleFinder(Settings.Default.Luminance, false, 60 * 25);
-            _camera = new CameraMJPG(Settings.Default.CameraURL, Settings.Default.FrameRate);
+            _camera = new CameraMJPG(Settings.Default.CameraURL, Settings.Default.FrameRate, Settings.Default.Compression);
             // _camera = new Camera(Settings.Default.CameraURL, Settings.Default.FrameRate);
 
             _trim = Settings.Default.Trim;
@@ -122,6 +122,7 @@ namespace AimRobot {
             // throw new NotImplementedException();
         }
 
+#if false
         void reportAiming() 
         {
             bool a = _smartdashboard.GetBool("aiming");
@@ -174,11 +175,13 @@ namespace AimRobot {
 
             }
         }
+#endif
 
         // aim targets the selected target, draws the linesh
         void aim() {
             RobotLocator rl = new RobotLocator(_particlefinder);
-            string targetSelection = _smartdashboard.GetString("targetSelection");
+            // string targetSelection = _smartdashboard.GetString("targetSelection");
+            string targetSelection = "mid";
 
             Particle target = null;
             // targetSelection = "right";
@@ -240,18 +243,18 @@ namespace AimRobot {
             _targetoffset -= _trim;
 
             if (target != null) {
-                _smartdashboard.SetDouble("offset", (double)_targetoffset);
+                // _smartdashboard.SetDouble("offset", (double)_targetoffset);
                 // _smartdashboard.SetDouble("width", (double)rl.targetmid.width);
                 // _smartdashboard.SetDouble("height", (double)rl.targetmid.height);
             }
             else {
                 // dang, no target
-                _smartdashboard.SetDouble("offset", (double)320);
+                // _smartdashboard.SetDouble("offset", (double)320);
                 // _smartdashboard.SetDouble("width", (double)0);
                 // _smartdashboard.SetDouble("height", (double)0);
             }
 
-            _smartdashboard.SetDouble("frameNum", (double)_framecount);
+            // _smartdashboard.SetDouble("frameNum", (double)_framecount);
 
             string dir = string.Empty;
 

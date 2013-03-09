@@ -118,5 +118,17 @@ namespace AimRobot.Properties {
                 this["Trim"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public byte Compression {
+            get {
+                return ((byte)(this["Compression"]));
+            }
+            set {
+                this["Compression"] = value;
+            }
+        }
     }
 }

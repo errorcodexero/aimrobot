@@ -15,14 +15,11 @@ namespace AimRobot {
         Thread _t;
         bool _running = true;
         bool _newimage;
-        int _wait;
         HttpWebRequest _request;
         HttpWebResponse _response;
         DateTime _lastframetime;
 
-        // http://10.14.25.11/
-        public const string httpmjpg = "axis-cgi/mjpg/video.cgi?resolution=640x480&fps=20&compression=60";
-        public string baseurl = "http://10.14.25.11/";
+        public const string httpmjpg = "{0}axis-cgi/mjpg/video.cgi?resolution=640x480&req_fps={1}&compression={2}";
         string _boundary = "--myboundary\r\n";
 
         public string fullurl;
@@ -172,12 +169,11 @@ namespace AimRobot {
         // publics
         //
         ///////////////////////////////////////////////////////////////////////////
-        public CameraMJPG(string url, uint fps) {
-            fullurl = url + httpmjpg;
+        public CameraMJPG(string url, uint fps, byte compression) {
+            fullurl = string.Format(httpmjpg, url, fps, compression);
 
             // fullurl = testurl;
             // _wait = (int) (1000 / fps);
-            _wait = 1;
         }
 
         public void Start() {

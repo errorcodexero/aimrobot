@@ -29,6 +29,7 @@ namespace AimRobot {
             _luminance.Text = Settings.Default.Luminance.ToString();
             _framerate.Text = Settings.Default.FrameRate.ToString();
             _trim.Text = Settings.Default.Trim.ToString();
+            _compression.Text = Settings.Default.Compression.ToString();
 
             Closing += new System.ComponentModel.CancelEventHandler(AppSettings_Closing);
         }
@@ -44,6 +45,7 @@ namespace AimRobot {
                 Settings.Default.CameraURL = _cameraurl.Text;
                 Settings.Default.FrameRate = UInt32.Parse(_framerate.Text);
                 Settings.Default.Trim = Int32.Parse(_trim.Text);
+                Settings.Default.Compression = Byte.Parse(_compression.Text);
 
                 Settings.Default.Save();
 
